@@ -4,7 +4,10 @@
   "description": "",
   "main": "expressServer.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node expressServer.js"
+  },
+  "engines": {
+    "node": "14.15.3"
   },
   "repository": {
     "type": "git",
@@ -20,6 +23,7 @@
   "dependencies": {
     "config": "^3.3.6",
     "express": "^4.17.1",
+    "http-build-query": "^0.7.0",
     "request": "^2.88.2"
   }
 }
