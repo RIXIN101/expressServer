@@ -27,15 +27,7 @@ function getDealById(id) {
 app.get('/success', (req, res) => {
   const reqDealId = req.query.InvId;
   console.log(reqDealId);
-  request.post({
-    url: `https://api.telegram.org/bot${TOKEN}/sendMessage?chat_id=497394343&text=${reqDealId}`,
-    json: true
-  }, (error, response, body) => {
-      if (error) console.log(error);
-      else console.log('Тесты прошли успешно')
-  });
-  res.end();
-  /* getDealById(reqDealId).then(response => {
+  getDealById(reqDealId).then(response => {
     const comments = response.result.COMMENTS;
     const chatID = comments.split(" ")[0];
     let companyName = '';
@@ -69,21 +61,13 @@ app.get('/success', (req, res) => {
       }
     });
     res.end();
-  }); */
+  });
+  res.end();
 });
 
 app.get('/failure', (req, res) => {
   const reqDealId = req.query.invId;
-  console.log(reqDealId);
-  request.post({
-    url: `https://api.telegram.org/bot${TOKEN}/sendMessage?chat_id=497394343&text=сосиска`,
-    json: true
-  }, (error, response, body) => {
-      if (error) console.log(error);
-      else console.log('Тесты прошли успешно')
-  });
-  res.end();
-  /* const text = 'Отказано. Проверьте состояние оплаты или обратитесь в команду поддержки для помощи.';
+  const text = 'Отказано. Проверьте состояние оплаты или обратитесь в команду поддержки для помощи.';
   const updateDealFields = {
     "ID": reqDealId,
     "fields": {
@@ -119,7 +103,8 @@ app.get('/failure', (req, res) => {
         return false;
       }
     });
-  }); */
+  });
+  res.end();
 });
 
 app.listen(PORT, () => {
