@@ -10,6 +10,7 @@ const TOKEN = config.get('TOKEN');
 const bitrix24Url = config.get('bitrix24Url');
 const httpBuildQuery = require("http-build-query");
 
+const PORT = process.env.PORT || 80
 function getDealById(id) {
   return new Promise((resolve, reject) => {
     request({
@@ -108,6 +109,6 @@ app.get('/failure/:invId', (req, res) => {
   res.end();
 });
 
-app.listen(80, () => {
+app.listen(PORT, () => {
   console.log('Server has been started...')
 });
