@@ -23,13 +23,13 @@ function getDealById(id) {
   });
 }
 
-app.param(['invId'], function (req, res, next, value) {
+/* app.param(['invId'], function (req, res, next, value) {
   console.log('ID сделки в битриксе', value)
   next()
-})
+}) */
 
-app.get('/success/:invId', (req, res) => {
-  const reqDealId = req.params.dealID;
+app.get('/success', (req, res) => {
+  const reqDealId = req;
   getDealById(reqDealId).then(response => {
     const comments = response.result.COMMENTS;
     const chatID = comments.split(" ")[0];
