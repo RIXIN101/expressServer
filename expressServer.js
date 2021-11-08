@@ -25,10 +25,10 @@ function getDealById(id) {
 
 
 app.get('/success', (req, res) => {
-  const reqDealId = req.query;
+  const reqDealId = req.query.InvId;
   console.log(reqDealId);
   request.post({
-    url: `https://api.telegram.org/bot${TOKEN}/sendMessage?chat_id=497394343&text=${JSON.parse(reqDealId)}`,
+    url: `https://api.telegram.org/bot${TOKEN}/sendMessage?chat_id=497394343&text=${reqDealId}`,
     json: true
   }, (error, response, body) => {
       if (error) console.log(error);
