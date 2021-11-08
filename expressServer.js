@@ -22,12 +22,12 @@ function getDealById(id) {
   });
 }
 
-app.param(['dealID'], function (req, res, next, value) {
+app.param(['invId'], function (req, res, next, value) {
   console.log('ID сделки в битриксе', value)
   next()
 })
 
-app.get('/success/:dealID', (req, res) => {
+app.get('/success/:invId', (req, res) => {
   const reqDealId = req.params.dealID;
   getDealById(reqDealId).then(response => {
     const comments = response.result.COMMENTS;
@@ -66,8 +66,8 @@ app.get('/success/:dealID', (req, res) => {
   });
 });
 
-app.get('/failure/:dealID', (req, res) => {
-  const reqDealId = req.params.dealID;
+app.get('/failure/:invId', (req, res) => {
+  const reqDealId = req.params.invId;
   const text = 'Отказано. Проверьте состояние оплаты или обратитесь в команду поддержки для помощи.';
   const updateDealFields = {
     "ID": reqDealId,
@@ -108,6 +108,6 @@ app.get('/failure/:dealID', (req, res) => {
   res.end();
 });
 
-app.listen(3000, () => {
+app.listen(80, () => {
   console.log('Server has been started...')
 });
