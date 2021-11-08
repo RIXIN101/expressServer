@@ -2,6 +2,7 @@
 const config = require('config');
 const express = require('express');
 const app = express();
+const path = require('path');
 const request = require('request');
 const bitrix24 = require('./bitrix24');
 const TOKEN = config.get('TOKEN');
@@ -62,7 +63,7 @@ app.get('/success', (req, res) => {
     });
     res.end();
   });
-  res.end();
+  res.sendFile(path.join(__dirname + `/resultClient/success.html`));
 });
 
 app.get('/failure', (req, res) => {
@@ -104,7 +105,8 @@ app.get('/failure', (req, res) => {
       }
     });
   });
-  res.end();
+  res.sendFile(path.join(__dirname + `/resultClient/failure.html`));
+
 });
 
 app.listen(PORT, () => {

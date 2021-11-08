@@ -24,6 +24,7 @@
     "config": "^3.3.6",
     "express": "^4.17.1",
     "http-build-query": "^0.7.0",
+    "path": "^0.12.7",
     "request": "^2.88.2"
   }
 }
