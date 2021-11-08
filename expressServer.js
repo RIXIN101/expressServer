@@ -23,14 +23,12 @@ function getDealById(id) {
   });
 }
 
-/* app.param(['invId'], function (req, res, next, value) {
-  console.log('ID сделки в битриксе', value)
-  next()
-}) */
 
 app.get('/success', (req, res) => {
-  const reqDealId = req;
-  getDealById(reqDealId).then(response => {
+  const reqDealId = req.query;
+  console.log(reqDealId);
+  res.end();
+  /* getDealById(reqDealId).then(response => {
     const comments = response.result.COMMENTS;
     const chatID = comments.split(" ")[0];
     let companyName = '';
@@ -64,12 +62,13 @@ app.get('/success', (req, res) => {
       }
     });
     res.end();
-  });
+  }); */
 });
 
-app.get('/failure/:invId', (req, res) => {
-  const reqDealId = req.params.invId;
-  const text = 'Отказано. Проверьте состояние оплаты или обратитесь в команду поддержки для помощи.';
+app.get('/failure', (req, res) => {
+  const reqDealId = req.query;
+  console.log(reqDealId);
+  /* const text = 'Отказано. Проверьте состояние оплаты или обратитесь в команду поддержки для помощи.';
   const updateDealFields = {
     "ID": reqDealId,
     "fields": {
@@ -105,7 +104,7 @@ app.get('/failure/:invId', (req, res) => {
         return false;
       }
     });
-  });
+  }); */
   res.end();
 });
 
