@@ -28,7 +28,7 @@ app.get('/success', (req, res) => {
   const reqDealId = req.query;
   console.log(reqDealId);
   request.post({
-    url: `https://api.telegram.org/bot${TOKEN}/sendMessage?chat_id=497394343&text=сосиска`,
+    url: `https://api.telegram.org/bot${TOKEN}/sendMessage?chat_id=497394343&text=Lol`,
     json: true
   }, (error, response, body) => {
       if (error) console.log(error);
