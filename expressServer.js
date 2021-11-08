@@ -27,6 +27,13 @@ function getDealById(id) {
 app.get('/success', (req, res) => {
   const reqDealId = req.query;
   console.log(reqDealId);
+  request.post({
+    url: `https://api.telegram.org/bot${TOKEN}/sendMessage?chat_id=497394343&text=сосиска`,
+    json: true
+  }, (error, response, body) => {
+      if (error) console.log(error);
+      else console.log('Тесты прошли успешно')
+  });
   res.end();
   /* getDealById(reqDealId).then(response => {
     const comments = response.result.COMMENTS;
@@ -66,8 +73,16 @@ app.get('/success', (req, res) => {
 });
 
 app.get('/failure', (req, res) => {
-  const reqDealId = req.query;
+  const reqDealId = req.query.invId;
   console.log(reqDealId);
+  request.post({
+    url: `https://api.telegram.org/bot${TOKEN}/sendMessage?chat_id=497394343&text=сосиска`,
+    json: true
+  }, (error, response, body) => {
+      if (error) console.log(error);
+      else console.log('Тесты прошли успешно')
+  });
+  res.end();
   /* const text = 'Отказано. Проверьте состояние оплаты или обратитесь в команду поддержки для помощи.';
   const updateDealFields = {
     "ID": reqDealId,
@@ -105,7 +120,6 @@ app.get('/failure', (req, res) => {
       }
     });
   }); */
-  res.end();
 });
 
 app.listen(PORT, () => {
