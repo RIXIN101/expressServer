@@ -115,7 +115,6 @@ exports.getCompany = function(nameCompany, chatId){
   //! then для работы!
   .then((response)=>{
       const text = validateCompanyInfo(response);
-      console.log(text);
       const data = {
           "chat_id": chatId,
           "text": text

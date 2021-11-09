@@ -27,7 +27,6 @@ function getDealById(id) {
 
 app.get('/success', (req, res) => {
   const reqDealId = req.query.InvId;
-  console.log(reqDealId);
   getDealById(reqDealId).then(response => {
     const comments = response.result.COMMENTS;
     const chatID = comments.split(" ")[0];
