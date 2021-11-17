@@ -1,4 +1,5 @@
 const config = require('config');
+const { response } = require('express');
 const request = require("request");
 var exports = module.exports = {};
 const bitrix24Url = config.get('bitrix24Url');
@@ -6,29 +7,17 @@ const TOKEN = config.get('TOKEN');
 
 //* Получение контакта
 exports.getContacts = function(nameCompany, chatId){
-getCompanyIdByName(nameCompany).then((response) => {
-  const companyId = response.result[0].ID;
-  getContactByCompanyId(companyId, chatId).then(response => {
-    return getContactByContactId(response);
-  })
-  //! then для работы!
-  .then((response)=>{
-    if (response.error == '') {
-      const text = 'Контакт, привязанный к компании, не обнаружен.';
-      const data = {
-          "chat_id": chatId,
-          "text": text
-      };
-      request.post({
-          url: `https://api.telegram.org/bot${TOKEN}/sendMessage`,
-          body: data,
-          json: true
-      }, (error, response, body) => {
-          if (error) console.log(error);
-          else console.log('Контакт, привязанный к компании, не обнаружен.')
-      });
-    } else {
-      const text = validateContactInfo(response);
+  getCompanyIdByName(nameCompany).then((response) => {
+    const companyId = response.result[0].ID;
+    getContactByCompanyId(companyId, chatId).then(response => {
+      return getContactByContactId(response);
+    })
+    //! then для работы!
+    .then((response)=>{
+      let text = ``;
+      for(let i = 0; i < response.length; i++) {
+        text += `${response[i]}\n`;
+      }
       const data = {
           "chat_id": chatId,
           "text": text
@@ -41,20 +30,23 @@ getCompanyIdByName(nameCompany).then((response) => {
           if (error) console.log(error);
           else console.log('Данные контакта отправлены')
       });
-    }
+    })
   })
-})
-}
+  }
 
-function getContactByContactId(contactId) {
+function getContactByContactId(contactsIdArray) {
 return new Promise((resolve, reject)=>{
-  request({
-    url: `${bitrix24Url}/crm.contact.get?id=${contactId}`,
-    json: true
-  }, (error, response, body) => {
-        if(error) reject(error)
-        resolve(body);
+  const contactInfo = [];
+  for(let i = 0; i < contactsIdArray.length; i++) {
+    request({
+      url: `${bitrix24Url}/crm.contact.get?id=${contactsIdArray[i]}`,
+      json: true
+    }, (error, response, body) => {
+          if(error) reject(error)
+          contactInfo.push(validateContactInfo(body));
+          if (contactInfo.length == contactsIdArray.length) resolve(contactInfo)
     });
+  }
 })
 }
 
@@ -68,8 +60,11 @@ return new Promise((resolve, reject)=>{
         if (body.result == false) {
           resolve(false);
         } else {
-          const contactId = body.result[0].CONTACT_ID;
-          resolve(contactId);
+          const contactsIdArr = [];
+          for(let i = 0; i < body.result.length; i++) {
+            contactsIdArr.push(body.result[i].CONTACT_ID);
+          }
+          resolve(contactsIdArr);
         }
     });
 })
@@ -94,7 +89,8 @@ function validateContactInfo(response) {
   }
   const successContactData = {
     Title: `\nКонтакт привязаный к компании`,
-  }
+    NameAndLastName: `\nИмя: ${response.result.NAME} ${response.result.LAST_NAME}`
+  };
   if (respObj.phone != undefined) {
     successContactData.Phone = `\nТелефон: ${respObj.phone}`;
   } else successContactData.Phone = '';
@@ -102,7 +98,7 @@ function validateContactInfo(response) {
     successContactData.Email = `\nE-mail: ${respObj.email}`;
   } else successContactData.Email = '';
 
-  const successContactDataResp = successContactData.Title + successContactData.Email + successContactData.Phone;
+  const successContactDataResp = successContactData.Title + successContactData.NameAndLastName + successContactData.Email + successContactData.Phone;
   return successContactDataResp;
 }
 
@@ -115,6 +111,7 @@ exports.getCompany = function(nameCompany, chatId){
   //! then для работы!
   .then((response)=>{
       const text = validateCompanyInfo(response);
+      console.log(text);
       const data = {
           "chat_id": chatId,
           "text": text
@@ -236,7 +233,108 @@ function validateCompanyInfo(objData) {
   if (respObj.kvt != undefined) {
     successData.successDataKvt = `\nкВт: ${respObj.kvt}`;
   } else successData.successDataKvt = '';
-  
+
   const successDataRes = successData.successDataTitle + successData.successDataPhone + successData.successDataEmail + successData.successDataWeb + successData.successDataAdressObject + successData.successDataKvt;
   return successDataRes;
+}
+
+exports.someInfoCompany = function(nameCompany, chatId) {
+  getCompanyIdByName(nameCompany).then((response) => {
+    console.log(response);
+    let id = response.result[0].ID;
+    return getCompanyById(id)
+  }).then(response => {
+    const companyData = response;
+    contactCounter(response.result.ID).then(response => {
+      if (response != 0) {
+        const text = `${validateSomeInfoCompany(companyData)}\nКоличество привязанных контактов: ${response}`;
+        const data = {
+          "chat_id": chatId,
+          "text": text
+        };
+        request.post({
+            url: `https://api.telegram.org/bot${TOKEN}/sendMessage`,
+            body: data,
+            json: true
+        }, (error, response, body) => {
+            if (error) console.log(error);
+            else console.log('Неполные данные компании отправлены')
+        });
+      } else {
+        const text = `${validateSomeInfoCompany(companyData)}`;
+        const data = {
+          "chat_id": chatId,
+          "text": text
+        };
+        request.post({
+            url: `https://api.telegram.org/bot${TOKEN}/sendMessage`,
+            body: data,
+            json: true
+        }, (error, response, body) => {
+            if (error) console.log(error);
+            else console.log('Неполные данные компании отправлены')
+        });
+      }
+    });
+  })
+}
+
+function contactCounter(companyId) {
+  return new Promise((resolve, reject)=>{
+    request({
+      url: `${bitrix24Url}/crm.company.contact.items.get?id=${companyId}`,
+      json: true
+    }, (error, response, body) => {
+          if(error) reject(error)
+          if (body.result == false) {
+            resolve(0);
+          } else {
+            resolve(body.result.length);
+          }
+      });
+  })
+}
+
+function validateSomeInfoCompany(objData) {
+  let someInfoCompanyData = {
+    title: '',
+    phone: '',
+    email: '',
+    web: ''
+  };
+  if (objData.result.TITLE != undefined) someInfoCompanyData.title = '✅';
+  else someInfoCompanyData.title = 'No';
+  if (objData.result.HAS_PHONE == 'Y') someInfoCompanyData.phone = '✅';
+  else someInfoCompanyData.phone = 'No';
+  if (objData.result.HAS_EMAIL == 'Y') someInfoCompanyData.email = '✅';
+  else someInfoCompanyData.email = 'No';
+  if (objData.result.WEB != undefined) someInfoCompanyData.web = '✅';
+  else someInfoCompanyData.web = 'No';
+
+  let someInfoCompanyDataNotCheck = {
+    title: `Название компании: ${someInfoCompanyData.title}`,
+    phone: `Телефон: ${someInfoCompanyData.phone}`,
+    email: `E-mail: ${someInfoCompanyData.email}`,
+    web: `Сайт: ${someInfoCompanyData.web}`
+  }
+
+  if (someInfoCompanyData.title == 'No') {
+    delete someInfoCompanyDataNotCheck.title;
+    if (someInfoCompanyDataNotCheck.title == undefined) someInfoCompanyDataNotCheck.title = '';
+  }
+  if (someInfoCompanyData.phone == 'No') {
+    delete someInfoCompanyDataNotCheck.phone;
+    if (someInfoCompanyDataNotCheck.phone == undefined) someInfoCompanyDataNotCheck.phone = '';
+  }
+  if (someInfoCompanyData.email == 'No') {
+    delete someInfoCompanyDataNotCheck.email;
+    if (someInfoCompanyDataNotCheck.email == undefined) someInfoCompanyDataNotCheck.email = '';
+  }
+  if (someInfoCompanyData.web == 'No') {
+    delete someInfoCompanyDataNotCheck.web;
+    if (someInfoCompanyDataNotCheck.web == undefined) someInfoCompanyDataNotCheck.web = '';
+  }
+
+  someInfoCompanyDataParsed = `${someInfoCompanyDataNotCheck.title}\n${someInfoCompanyDataNotCheck.phone}\n${someInfoCompanyDataNotCheck.email}\n${someInfoCompanyDataNotCheck.web}`;
+  return someInfoCompanyDataParsed
 }
