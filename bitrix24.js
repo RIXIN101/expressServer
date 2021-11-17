@@ -6,18 +6,30 @@ const bitrix24Url = config.get('bitrix24Url');
 const TOKEN = config.get('TOKEN');
 
 //* Получение контакта
-exports.getContacts = function(nameCompany, chatId){
-  getCompanyIdByName(nameCompany).then((response) => {
-    const companyId = response.result[0].ID;
-    getContactByCompanyId(companyId, chatId).then(response => {
-      return getContactByContactId(response);
-    })
-    //! then для работы!
-    .then((response)=>{
-      let text = ``;
-      for(let i = 0; i < response.length; i++) {
-        text += `${response[i]}\n`;
-      }
+/* exports.getContacts = function(nameCompany, chatId){
+getCompanyIdByName(nameCompany).then((response) => {
+  const companyId = response.result[0].ID;
+  getContactByCompanyId(companyId, chatId).then(response => {
+    return getContactByContactId(response);
+  })
+  //! then для работы!
+  .then((response)=>{
+    if (response.error == '') {
+      const text = 'Контакт, привязанный к компании, не обнаружен.';
+      const data = {
+          "chat_id": chatId,
+          "text": text
+      };
+      request.post({
+          url: `https://api.telegram.org/bot${TOKEN}/sendMessage`,
+          body: data,
+          json: true
+      }, (error, response, body) => {
+          if (error) console.log(error);
+          else console.log('Контакт, привязанный к компании, не обнаружен.')
+      });
+    } else {
+      const text = validateContactInfo(response);
       const data = {
           "chat_id": chatId,
           "text": text
@@ -30,7 +42,52 @@ exports.getContacts = function(nameCompany, chatId){
           if (error) console.log(error);
           else console.log('Данные контакта отправлены')
       });
-    })
+    }
+  })
+})
+} */
+
+exports.getContacts = function(nameCompany, chatId){
+  getCompanyIdByName(nameCompany).then((response) => {
+      const companyId = response.result[0].ID;
+      getContactByCompanyId(companyId).then(response => {
+        if (response == false) {
+          const text = 'Контакт, привязанный к компании, не обнаружен.';
+          const data = {
+              "chat_id": chatId,
+              "text": text
+          };
+          return request.post({
+              url: `https://api.telegram.org/bot${TOKEN}/sendMessage`,
+              body: data,
+              json: true
+          }, (error, response, body) => {
+              if (error) console.log(error);
+              else console.log('Контакт, привязанный к компании, не обнаружен.')
+          });
+        } else {
+          return getContactByContactId(response);
+        }
+      })
+      //! then для работы!
+      .then((response)=>{
+        let text = ``;
+        for(let i = 0; i < response.length; i++) {
+          text += `${response[i]}\n`;
+        }
+        const data = {
+            "chat_id": chatId,
+            "text": text
+        };
+        request.post({
+            url: `https://api.telegram.org/bot${TOKEN}/sendMessage`,
+            body: data,
+            json: true
+        }, (error, response, body) => {
+            if (error) console.log(error);
+            else console.log('Данные контакта отправлены')
+        });
+      })
   })
   }
 
@@ -50,14 +107,15 @@ return new Promise((resolve, reject)=>{
 })
 }
 
-function getContactByCompanyId(companyId, chatId) {
+
+function getContactByCompanyId(companyId) {
 return new Promise((resolve, reject)=>{
   request({
     url: `${bitrix24Url}/crm.company.contact.items.get?id=${companyId}`,
     json: true
   }, (error, response, body) => {
         if(error) reject(error)
-        if (body.result == false) {
+        if (body.result.length == 0) {
           resolve(false);
         } else {
           const contactsIdArr = [];
@@ -101,6 +159,7 @@ function validateContactInfo(response) {
   const successContactDataResp = successContactData.Title + successContactData.NameAndLastName + successContactData.Email + successContactData.Phone;
   return successContactDataResp;
 }
+
 
 //* Получение основной информации о компании
 exports.getCompany = function(nameCompany, chatId){
