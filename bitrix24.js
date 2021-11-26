@@ -210,6 +210,7 @@ function validateCompanyInfo(objData) {
     phone: [],
     email: [],
     web: [],
+    comments: ``,
     kvt: ``,
     adressObject: ``,
   };
@@ -262,6 +263,11 @@ function validateCompanyInfo(objData) {
   } else {
     delete respObj.web;
   }
+  if (objData.result.COMMENTS !== "") {
+    respObj.comments = objData.result.COMMENTS;
+  } else {
+    delete respObj.comments
+  }
 
   const successData = {
     successDataTitle: `\nНазвание компании: ${respObj.title}`,
@@ -287,7 +293,11 @@ function validateCompanyInfo(objData) {
     successData.successDataKvt = `\nкВт: ${respObj.kvt}`;
   } else successData.successDataKvt = '';
 
-  const successDataRes = successData.successDataTitle + successData.successDataPhone + successData.successDataEmail + successData.successDataWeb + successData.successDataAdressObject + successData.successDataKvt;
+  if (respObj.comments != undefined) {
+    successData.successDataComments = `\nКомментарий: ${respObj.comments}`;
+  } else successData.successDataComments = '';
+
+  const successDataRes = successData.successDataTitle + successData.successDataPhone + successData.successDataEmail + successData.successDataWeb + successData.successDataAdressObject + successData.successDataKvt + successData.successDataComments;
   return successDataRes;
 }
 
