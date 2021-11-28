@@ -1,5 +1,4 @@
 const config = require('config');
-const { response } = require('express');
 const request = require("request");
 var exports = module.exports = {};
 const bitrix24Url = config.get('bitrix24Url');
@@ -86,9 +85,6 @@ function getContactByCompanyId(companyId) {
   })
 }
 
-// UF_CRM_1572360601903 - должность ( position )
-// UF_CRM_1572360940877 - За какую часть города отвечает ( partOfCity )
-
 //* Валидация данных контакта
 function validateContactInfo(response) {
   const respObj = {
@@ -99,61 +95,34 @@ function validateContactInfo(response) {
     partOfCity: ``
   };
   // Телефон(-ы)
-  if (response.result.HAS_PHONE === "Y") {
-    respObj.phone = response.result.PHONE[0].VALUE;
-  } else {
-    delete respObj.phone;
-  }
+  response.result.HAS_PHONE === "Y" ? respObj.phone = response.result.PHONE[0].VALUE : delete respObj.phone;
   // Почта(-ы)
-  if (response.result.HAS_EMAIL === "Y") {
-    respObj.email = response.result.EMAIL[0].VALUE;
-  } else {
-    delete respObj.email;
-  }
+  response.result.HAS_EMAIL === "Y" ? respObj.email = response.result.EMAIL[0].VALUE : delete respObj.email;
   // Комментарий
-  if (response.result.COMMENTS != "") {
-    respObj.comments = response.result.COMMENTS;
-  } else {
-    delete respObj.comments;
-  }
+  response.result.COMMENTS != "" ? respObj.comments = response.result.COMMENTS : delete respObj.comments;
   // Должность
-  if (response.result.UF_CRM_1572360601903 != "") {
-    respObj.position = response.result.UF_CRM_1572360601903;
-  } else {
-    delete respObj.position;
-  }
+  response.result.UF_CRM_1572360601903 != "" ? respObj.position = response.result.UF_CRM_1572360601903 : delete respObj.position;
   // Часть города за которую отвечает
-  if (response.result.UF_CRM_1572360940877 != "") {
-    respObj.partOfCity = response.result.UF_CRM_1572360940877;
-  } else {
-    delete respObj.partOfCity;
-  }
+  response.result.UF_CRM_1572360940877 != "" ? respObj.partOfCity = response.result.UF_CRM_1572360940877 : delete respObj.partOfCity;
 
   const successContactData = {
     Title: `\nКонтакт привязаный к компании`,
     NameAndLastName: `\nИмя: ${response.result.NAME} ${response.result.LAST_NAME}`
   };
-
-  if (respObj.phone != undefined) {
-    successContactData.Phone = `\nТелефон: ${respObj.phone}`;
-  } else successContactData.Phone = '';
-  if (respObj.email != undefined) {
-    successContactData.Email = `\nE-mail: ${respObj.email}`;
-  } else successContactData.Email = '';
-  if (respObj.comments != undefined) {
-    successContactData.comments = `\nКомментарий: ${respObj.comments}`;
-  } else successContactData.comments = '';
-  if (respObj.position != undefined) {
-    successContactData.position = `\nДолжность: ${respObj.position}`;
-  } else successContactData.position = '';
-  if (respObj.partOfCity != undefined) {
-    successContactData.partOfCity = `\nЗа какую часть города отвечает: ${respObj.partOfCity}`;
-  } else successContactData.partOfCity = '';
+  // Телефон(-ы)
+  respObj.phone != undefined ? successContactData.Phone = `\nТелефон: ${respObj.phone}` : successContactData.Phone = '';
+  // Почта(-ы)
+  respObj.email != undefined ? successContactData.Email = `\nE-mail: ${respObj.email}` : successContactData.Email = '';
+  // Комментарий
+  respObj.comments != undefined ? successContactData.comments = `\nКомментарий: ${respObj.comments}` : successContactData.comments = ''
+  // Должность
+  respObj.position != undefined ? successContactData.position = `\nДолжность: ${respObj.position}` : successContactData.position = '';
+  // Часть города за которую отвечает
+  respObj.partOfCity != undefined ? successContactData.partOfCity = `\nЗа какую часть города отвечает: ${respObj.partOfCity}` : successContactData.partOfCity = ''
 
   const successContactDataResp = successContactData.Title + successContactData.NameAndLastName + successContactData.Email + successContactData.Phone + successContactData.comments + successContactData.position + successContactData.partOfCity;
   return successContactDataResp;
 }
-
 
 //* Получение основной информации о компании
 exports.getCompany = function(nameCompany, chatId){
@@ -303,7 +272,7 @@ function validateCompanyInfo(objData) {
 
 exports.someInfoCompany = function(nameCompany, chatId) {
   getCompanyIdByName(nameCompany).then((response) => {
-    console.log(response);
+    console.log('Ok');
     let id = response.result[0].ID;
     return getCompanyById(id)
   }).then(response => {
@@ -365,23 +334,19 @@ function validateSomeInfoCompany(objData) {
     email: '',
     web: ''
   };
-  if (objData.result.TITLE != undefined) someInfoCompanyData.title = '✅';
-  else someInfoCompanyData.title = 'No';
-  if (objData.result.HAS_PHONE == 'Y') someInfoCompanyData.phone = '✅';
-  else someInfoCompanyData.phone = 'No';
-  if (objData.result.HAS_EMAIL == 'Y') someInfoCompanyData.email = '✅';
-  else someInfoCompanyData.email = 'No';
-  if (objData.result.WEB != undefined) someInfoCompanyData.web = '✅';
-  else someInfoCompanyData.web = 'No';
-  if (objData.result.COMMENTS != undefined) someInfoCompanyData.comments = '✅';
-  else someInfoCompanyData.comments = 'No'
+
+  objData.result.TITLE != undefined ? someInfoCompanyData.title = '✅' : someInfoCompanyData.title = 'No';
+  objData.result.HAS_PHONE == 'Y' ? someInfoCompanyData.phone = '✅' : someInfoCompanyData.phone = 'No';
+  objData.result.HAS_EMAIL == 'Y' ? someInfoCompanyData.email = '✅' : someInfoCompanyData.email = 'No';
+  objData.result.WEB != undefined ? someInfoCompanyData.web = '✅' : someInfoCompanyData.web = 'No';
+  objData.result.COMMENTS != undefined ? someInfoCompanyData.comments = '✅' : someInfoCompanyData.comments = 'No';
 
   let someInfoCompanyDataNotCheck = {
-    title: `Название компании: ${someInfoCompanyData.title}`,
-    phone: `Телефон: ${someInfoCompanyData.phone}`,
-    email: `E-mail: ${someInfoCompanyData.email}`,
-    web: `Сайт: ${someInfoCompanyData.web}`,
-    comments: `Комментарий: ${someInfoCompanyData.comments}`
+    title: `\nНазвание компании: ${someInfoCompanyData.title}`,
+    phone: `\nТелефон: ${someInfoCompanyData.phone}`,
+    email: `\nE-mail: ${someInfoCompanyData.email}`,
+    web: `\nСайт: ${someInfoCompanyData.web}`,
+    comments: `\nКомментарий: ${someInfoCompanyData.comments}`
   }
 
   if (someInfoCompanyData.title == 'No') {
@@ -405,6 +370,6 @@ function validateSomeInfoCompany(objData) {
     if (someInfoCompanyDataNotCheck.comments == undefined) someInfoCompanyDataNotCheck.comments == '';
   }
 
-  someInfoCompanyDataParsed = `${someInfoCompanyDataNotCheck.title}\n${someInfoCompanyDataNotCheck.phone}\n${someInfoCompanyDataNotCheck.email}\n${someInfoCompanyDataNotCheck.web}\n${someInfoCompanyDataNotCheck.comments}`;
+  someInfoCompanyDataParsed = someInfoCompanyDataNotCheck.title + someInfoCompanyDataNotCheck.phone + someInfoCompanyDataNotCheck.email + someInfoCompanyDataNotCheck.web + someInfoCompanyDataNotCheck.comments
   return someInfoCompanyDataParsed
 }
