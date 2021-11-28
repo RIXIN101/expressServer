@@ -12,10 +12,10 @@ const bitrix24Url = config.get('bitrix24Url');
 const httpBuildQuery = require("http-build-query");
 
 const PORT = process.env.PORT || 80
-function getDealById(id) {
+function getLeadById(id) {
   return new Promise((resolve, reject) => {
     request({
-      url: `${bitrix24Url}/crm.deal.get?id=${id}`,
+      url: `${bitrix24Url}/crm.lead.get?id=${id}`,
       json: true
     }, (error, response, body) => {
       if (error) reject(error);
@@ -26,8 +26,8 @@ function getDealById(id) {
 
 
 app.get('/success', (req, res) => {
-  const reqDealId = req.query.InvId;
-  getDealById(reqDealId).then(response => {
+  const reqLeadId = req.query.InvId;
+  getLeadById(reqLeadId).then(response => {
     const comments = response.result.COMMENTS;
     const chatID = comments.split(" ")[0];
     let companyName = '';
@@ -39,16 +39,15 @@ app.get('/success', (req, res) => {
     console.log(companyName, chatID);
     bitrix24.getCompany(companyName, chatID);
     bitrix24.getContacts(companyName, chatID);
-    const updateDealFields = {
-      "ID": reqDealId,
+    const updateLeadFields = {
+      "ID": reqLeadId,
       "fields": {
-        "OPENED": "N",
-        "CLOSED": "Y",
-        "STAGE_ID": "WON"
+        "TITLE": "Успешная оплата информации об объекте",
+        "OPENED": "N"
       }
     };
     request({
-      url: `${bitrix24Url}/crm.deal.update?${httpBuildQuery(updateDealFields)}`,
+      url: `${bitrix24Url}/crm.lead.update?${httpBuildQuery(updateLeadFields)}`,
       json: true
     }, (error, response, body) => {
       if (body.result == true) {
@@ -66,20 +65,18 @@ app.get('/success', (req, res) => {
 });
 
 app.get('/failure', (req, res) => {
-  const reqDealId = req.query.invId;
+  const reqLeadId = req.query.invId;
   const text = 'Отказано. Проверьте состояние оплаты или обратитесь в команду поддержки для помощи.';
-  const updateDealFields = {
-    "ID": reqDealId,
+  const updateLeadFields = {
+    "ID": reqLeadId,
     "fields": {
-      "OPENED": "N",
-      "CLOSED": "Y",
-      "STAGE_ID": "LOSE"
+      "TITLE": "Отказ оплата информации об объекте",
+      "OPENED": "N"
     }
   };
-  getDealById(reqDealId).then(response => {
+  getLeadById(reqLeadId).then(response => {
     const chatID = response.result.COMMENTS.split(" ")[0];
     const companyName = response.result.COMMENTS.split(" ")[1];
-    console.log(chatID, companyName);
     const data = {
       "chat_id": chatID,
       "text": text
@@ -93,7 +90,7 @@ app.get('/failure', (req, res) => {
         else console.log('Не прошла оплата. С кем не бывает')
     });
     request({
-      url: `${bitrix24Url}/crm.deal.update?${httpBuildQuery(updateDealFields)}`,
+      url: `${bitrix24Url}/crm.deal.update?${httpBuildQuery(updateLeadFields)}`,
       json: true
     }, (error, response, body) => {
       if (body.result == true) {
